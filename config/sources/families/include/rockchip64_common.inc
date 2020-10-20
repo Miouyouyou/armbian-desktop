@@ -9,6 +9,7 @@ OVERLAY_PREFIX='rockchip'
 SERIALCON=${SERIALCON:=$([ $BRANCH == "legacy" ] && echo "ttyFIQ0:1500000" || echo "ttyS2:1500000")}
 GOVERNOR="ondemand"
 BOOTBRANCH="tag:v2020.07"
+PACKAGE_LIST_FAMILY="ethtool"
 
 RKBIN_DIR="$SRC/cache/sources/rkbin-tools"
 
@@ -68,7 +69,7 @@ case $BRANCH in
 	current)
 
 		KERNELPATCHDIR='rockchip64-'$BRANCH
-		KERNELBRANCH="branch:linux-5.7.y"
+		KERNELBRANCH="branch:linux-5.8.y"
 		LINUXFAMILY=rockchip64
 		LINUXCONFIG='linux-rockchip64-'$BRANCH
 
@@ -256,11 +257,9 @@ family_tweaks()
 		mkdir -p $SDCARD/etc/udev/rules.d/
 		echo 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="r8152", KERNEL=="eth1", NAME="lan0"' > $SDCARD/etc/udev/rules.d/70-rename-lan.rules
 
-		# workaround - create old school initial network config since network manager have issues
-		echo "auto eth0" >> $SDCARD/etc/network/interfaces
-		echo "	iface eth0 inet dhcp" >> $SDCARD/etc/network/interfaces
-		echo "auto lan0" >> $SDCARD/etc/network/interfaces
-		echo "	iface lan0 inet dhcp" >> $SDCARD/etc/network/interfaces
+	elif [[ $BOARD == helios64 ]]; then
+
+		chroot $SDCARD /bin/bash -c "systemctl --no-reload enable helios64-heartbeat-led.service >/dev/null 2>&1"
 
 	elif [[ -f $SDCARD/lib/systemd/system/rk3399-bluetooth.service ]]; then
 
@@ -301,11 +300,29 @@ family_tweaks_bsp()
 	if [[ $BOARD == helios64 ]]; then
 
 		mkdir -p $destination/etc/udev/rules.d/
+		mkdir -p $destination/etc/systemd/system/fancontrol.service.d/
 		mkdir -p $destination/lib/systemd/system-shutdown/
 		cp $SRC/packages/bsp/helios64/50-usb-realtek-net.rules $destination/etc/udev/rules.d/
 		cp $SRC/packages/bsp/helios64/70-keep-usb-lan-as-eth1.rules $destination/etc/udev/rules.d/
 		cp $SRC/packages/bsp/helios64/asound.conf $destination/etc/
 		install -m 755 $SRC/packages/bsp/helios64/disable_auto_poweron $destination/lib/systemd/system-shutdown/
+
+		### Fancontrol tweaks
+		# copy hwmon rules to fix device mapping
+		if [[ $BRANCH == legacy ]]; then
+			install -m 644 $SRC/packages/bsp/helios64/90-helios64-hwmon-legacy.rules $destination/etc/udev/rules.d/
+		else
+			install -m 644 $SRC/packages/bsp/helios64/90-helios64-hwmon.rules $destination/etc/udev/rules.d/
+		fi
+
+		install -m 644 $SRC/packages/bsp/helios64/fancontrol.service.pid-override $destination/etc/systemd/system/fancontrol.service.d/pid.conf
+
+		# copy fancontrol config
+		install -m 644 $SRC/packages/bsp/helios64/fancontrol.conf $destination/etc/fancontrol
+
+		# LED tweak
+		cp $SRC/packages/bsp/helios64/helios64-heartbeat-led.service $destination/etc/systemd/system/
+
 	fi
 
 	# Graphics and media
