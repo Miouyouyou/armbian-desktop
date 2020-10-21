@@ -121,7 +121,6 @@ customize_image()
 } #############################################################################
 
  customize_image()
-@@ -128,24 +128,6 @@
  	[[ ! -f "${SDCARD}/root/${name}" ]] && cp "${package}" "${SDCARD}/root/${name}"
  	display_alert "Installing" "$name"
  	[[ $NO_APT_CACHER != yes ]] && local apt_extra="-o Acquire::http::Proxy=\"http://${APT_PROXY_ADDR:-localhost:3142}\" -o Acquire::http::Proxy::localhost=\"DIRECT\""
