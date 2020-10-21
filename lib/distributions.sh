@@ -22,11 +22,11 @@ install_common()
 	# install rootfs encryption related packages separate to not break packages cache
 	if [[ $CRYPTROOT_ENABLE == yes ]]; then
 		display_alert "Installing rootfs encryption related packages" "cryptsetup" "info"
-		chroot "${SDCARD}" /bin/bash -c "apt -y -qq --no-install-recommends install cryptsetup" \
+		chroot "${SDCARD}" /bin/bash -c "apt-get -y -qq --no-install-recommends install cryptsetup" \
 		>> "${DEST}"/debug/install.log 2>&1
 		if [[ $CRYPTROOT_SSH_UNLOCK == yes ]]; then
 			display_alert "Installing rootfs encryption related packages" "dropbear-initramfs" "info"
-			chroot "${SDCARD}" /bin/bash -c "apt -y -qq --no-install-recommends install dropbear-initramfs cryptsetup-initramfs" \
+			chroot "${SDCARD}" /bin/bash -c "apt-get -y -qq --no-install-recommends install dropbear-initramfs cryptsetup-initramfs" \
 			>> "${DEST}"/debug/install.log 2>&1
 		fi
 
@@ -217,22 +217,22 @@ install_common()
 
 	# install family packages
 	if [[ -n ${PACKAGE_LIST_FAMILY} ]]; then
-		chroot "${SDCARD}" /bin/bash -c "DEBIAN_FRONTEND=noninteractive  apt -yqq --no-install-recommends install $PACKAGE_LIST_FAMILY" >> "${DEST}"/debug/install.log
+		chroot "${SDCARD}" /bin/bash -c "DEBIAN_FRONTEND=noninteractive  apt-get -yqq --no-install-recommends install $PACKAGE_LIST_FAMILY" >> "${DEST}"/debug/install.log
 	fi
 
 	# install board packages
 	if [[ -n ${PACKAGE_LIST_BOARD} ]]; then
-		chroot "${SDCARD}" /bin/bash -c "DEBIAN_FRONTEND=noninteractive  apt -yqq --no-install-recommends install $PACKAGE_LIST_BOARD" >> "${DEST}"/debug/install.log
+		chroot "${SDCARD}" /bin/bash -c "DEBIAN_FRONTEND=noninteractive  apt-get -yqq --no-install-recommends install $PACKAGE_LIST_BOARD" >> "${DEST}"/debug/install.log
 	fi
 
 	# remove family packages
 	if [[ -n ${PACKAGE_LIST_FAMILY_REMOVE} ]]; then
-		chroot "${SDCARD}" /bin/bash -c "DEBIAN_FRONTEND=noninteractive  apt -yqq remove --auto-remove $PACKAGE_LIST_FAMILY_REMOVE" >> "${DEST}"/debug/install.log
+		chroot "${SDCARD}" /bin/bash -c "DEBIAN_FRONTEND=noninteractive  apt-get -yqq remove --auto-remove $PACKAGE_LIST_FAMILY_REMOVE" >> "${DEST}"/debug/install.log
 	fi
 
 	# remove board packages
 	if [[ -n ${PACKAGE_LIST_BOARD_REMOVE} ]]; then
-		chroot "${SDCARD}" /bin/bash -c "DEBIAN_FRONTEND=noninteractive  apt -yqq remove --auto-remove $PACKAGE_LIST_BOARD_REMOVE" >> "${DEST}"/debug/install.log
+		chroot "${SDCARD}" /bin/bash -c "DEBIAN_FRONTEND=noninteractive  apt-get -yqq remove --auto-remove $PACKAGE_LIST_BOARD_REMOVE" >> "${DEST}"/debug/install.log
 	fi
 
 	# install u-boot
@@ -476,9 +476,6 @@ install_common()
 
 }
 
-
-
-
 install_rclocal()
 {
 
@@ -501,9 +498,6 @@ install_rclocal()
 		chmod +x "${SDCARD}"/etc/rc.local
 
 }
-
-
-
 
 install_distribution_specific()
 {
@@ -548,7 +542,7 @@ install_distribution_specific()
 			sed '/security/ d' -i "${SDCARD}"/etc/apt/sources.list
 
 		;;
-	bionic|eoan|focal)
+	bionic|groovy|focal)
 
 			# by using default lz4 initrd compression leads to corruption, go back to proven method
 			sed -i "s/^COMPRESS=.*/COMPRESS=gzip/" "${SDCARD}"/etc/initramfs-tools/initramfs.conf
