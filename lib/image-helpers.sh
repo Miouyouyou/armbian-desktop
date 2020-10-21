@@ -145,12 +145,10 @@ install_deb_chroot_desktop()
 	local package=$1
 	local name
 	name=$(basename "${package}")
-	
 	local apt_install_flags=""
 	for flag in ${DESKTOP_APT_FLAGS_SELECTED}; do
 		apt_install_flags+=" --install-${flag}"
 	done
-	
 	[[ ! -f "${SDCARD}/root/${name}" ]] && cp "${package}" "${SDCARD}/root/${name}"
 	display_alert "Installing" "$name"
 	[[ $NO_APT_CACHER != yes ]] && local apt_extra="-o Acquire::http::Proxy=\"http://${APT_PROXY_ADDR:-localhost:3142}\" -o Acquire::http::Proxy::localhost=\"DIRECT\""
